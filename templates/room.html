@@ -1,0 +1,74 @@
+{% extends 'base.html' %} {% block content %}
+<div class="message-box">
+  <h1 style="margin: auto;">Chat Room: {{code}}</h1>
+  <div class="messages" id="messages"></div>
+  <div class="inputs">
+    <input
+      type="text"
+      rows="3"
+      placeholder="Message"
+      name="message"
+      id="message"
+    />
+    <button type="button" name="send" id="send-btn" onClick="sendMessage()">
+      Send
+    </button>
+  </div>
+</div>
+<div class="summary-box">
+  <h1>Summarization of the whole conversation.</h1>
+    <button type="button" name="summarize" id="summarize-btn" onclick="getSummary()">
+      Summarize
+    </button>
+    <div class="summary-text-container">
+      <pre class="summary-text">
+        
+      </pre>
+    </div>
+</div>
+<script type="text/javascript">
+    var socketio = io();
+    const createMessage = (name, msg) => {
+      const content = `
+      <div class=textbox >
+          <div class="sender">
+            <strong>${name}: </strong>
+          </div>
+          <div class="text">
+            ${msg}
+            <span class="muted">
+                ${new Date().toLocaleString()}
+            </span>
+          </div>
+      </div>
+      `;
+      messages.innerHTML += content;
+    };
+  
+    socketio.on("message", (data) => {
+      createMessage(data.name, data.message);
+    });
+
+    const sendMessage = () => {
+      const message = document.getElementById("message");
+      if (message.value == "") return;
+      socketio.emit("message", { data: message.value });
+      message.value = "";
+    };
+
+    const getSummary = () => {
+      const url = '/summary'
+      fetch(url)
+      .then(response => response.json())
+      .then(json => {
+          console.log(json);
+          document.getElementsByClassName("summary-text")[0].innerHTML = JSON.stringify(json.summary).trim(" ")
+      })
+  }
+</script>
+{% for msg in messages %}
+<script type="text/javascript">
+  createMessage("{{msg.name}}", "{{msg.message}}");
+</script>
+{% endfor %}
+{% endblock %}
