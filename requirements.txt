@@ -5,3 +5,4 @@ torch
 transformers
 python-dotenv
 google-generativeai
+gunicorn
